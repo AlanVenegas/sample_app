@@ -51,6 +51,7 @@ describe "User pages" do
     end
 
   end
+  
   describe "profile page" do
     let(:user) { FactoryGirl.create(:user) }
 	  before { visit user_path(user) }
@@ -59,12 +60,12 @@ describe "User pages" do
 	  it { should have_title(user.name) }
   end
 
-  
   describe "signup page" do
     before { visit signup_path }
 
     it { should have_content('Sign up') }
     it { should have_title(full_title('Sign up')) }
+	
   end
   
   describe "signup" do
@@ -92,7 +93,7 @@ describe "User pages" do
         fill_in "Name",         with: "Example User"
         fill_in "Email",        with: "user@example.com"
         fill_in "Password",     with: "foobar"
-        fill_in "Confirmation", with: "foobar"
+        fill_in "Confirm Password", with: "foobar"
       end
 
       it "should create a user" do
@@ -152,5 +153,16 @@ describe "User pages" do
       specify { expect(user.reload.email).to eq new_email }
     end
 
+	describe "forbidden attributes" do
+	  let(:cheat_params) do
+	  { user: {admin: true, password: user.password,
+				   password_confirmation: user.password } }
+	  end
+	  before do
+	    sign_in user, no_capybara: true
+		patch user_path(user), cheat_params
+      end
+	  specify { expect(user.reload).not_to be_admin }
+    end	  
   end
 end
