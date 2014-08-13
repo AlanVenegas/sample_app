@@ -32,6 +32,48 @@ describe "Static pages" do
           expect(page).to have_selector("li##{item.id}", text: item.content)
         end
       end
+	  
+	describe "pagination" do
+
+      before do
+	    31.times { FactoryGirl.create(:micropost, user: user, content: "Lorem ipsum" ) }
+		visit root_path
+	  end
+
+      it { should have_selector('div.pagination') }
+	  
+      it "should list each micropost" do
+        user.microposts.paginate(page: 1).each do |micropost|
+          expect(page).to have_selector('li', text: micropost.content)
+        end
+      end
+    end
+	  
+	  describe "micropost pluralization" do
+	    let(:new_user) { FactoryGirl.create(:user) }
+        before do
+          sign_in new_user
+        end
+		
+		shared_examples_for 'page with n microposts' do |number_of_posts, expected_text|
+
+		  before do
+			number_of_posts.times do
+			  FactoryGirl.create(:micropost, user: new_user, content: "Lorem ipsum")
+			end
+		    visit root_path
+		  end
+
+		  it "should have correct text" do
+		    expect(page).to have_text(expected_text)
+		  end
+		end
+
+		it_should_behave_like 'page with n microposts', 0, '0 microposts'
+		it_should_behave_like 'page with n microposts', 1, /1 micropost\b/
+		it_should_behave_like 'page with n microposts', 2, '2 microposts'
+
+	  end
     end
 	
   end
