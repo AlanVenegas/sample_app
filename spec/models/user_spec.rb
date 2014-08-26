@@ -198,6 +198,18 @@ describe User do
       it { should_not be_following(other_user) }
       its(:followed_users) { should_not include(other_user) }
     end
-  end
 
+    describe "and then deleting the user" do
+      before do
+        @user.destroy
+      end
+
+    it { should_not be_following(other_user) }
+    its(:followed_users) { should_not include(other_user) }
+      describe "followed user" do
+        subject { other_user }
+        its(:followers) { should_not include(@user) }
+      end
+    end
+  end
 end

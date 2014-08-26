@@ -21,15 +21,15 @@ describe "User pages" do
       after(:all)  { User.delete_all }
 
       it { should have_selector('div.pagination') }
-	  
+
       it "should list each user" do
         User.paginate(page: 1).each do |user|
           expect(page).to have_selector('li', text: user.name)
         end
       end
     end
-	
-	describe "delete links" do
+
+    describe "delete links" do
 
       it { should_not have_link('delete') }
 
@@ -56,13 +56,13 @@ describe "User pages" do
     let(:user) { FactoryGirl.create(:user) }
     let!(:m1) { FactoryGirl.create(:micropost, user: user, content: "Foo") }
     let!(:m2) { FactoryGirl.create(:micropost, user: user, content: "Bar") }
-		
-	before { visit user_path(user) }
 
-	it { should have_content(user.name) }
-	it { should have_title(user.name) }
-	
-	describe "microposts" do
+    before { visit user_path(user) }
+
+    it { should have_content(user.name) }
+    it { should have_title(user.name) }
+
+    describe "microposts" do
       it { should have_content(m1.content) }
       it { should have_content(m2.content) }
       it { should have_content(user.microposts.count) }
@@ -116,6 +116,19 @@ describe "User pages" do
         end
       end
     end
+
+    describe "follower/followed stats" do
+      let(:other_user) { FactoryGirl.create(:user) }
+
+      before do
+        user.follow!(other_user)
+        other_user.follow!(user)
+        visit user_path(user)
+      end
+
+      it { should have_link("1 following", href: following_user_path(user)) }
+      it { should have_link("1 followers", href: followers_user_path(user)) }
+    end
   end
 
   describe "signup page" do
@@ -123,7 +136,7 @@ describe "User pages" do
 
     it { should have_content('Sign up') }
     it { should have_title(full_title('Sign up')) }
-	
+
   end
   
   describe "signup" do
@@ -136,8 +149,8 @@ describe "User pages" do
       it "should not create a user" do
         expect { click_button submit }.not_to change(User, :count)
       end
-	  
-	  describe "after submission" do
+
+      describe "after submission" do
         before { click_button submit }
 
         it { should have_title('Sign up') }
@@ -157,16 +170,16 @@ describe "User pages" do
       it "should create a user" do
         expect { click_button submit }.to change(User, :count).by(1)
       end
-	  
-	  describe "after saving the user" do
+
+      describe "after saving the user" do
         before { click_button submit }
         let(:user) { User.find_by(email: 'user@example.com') }
 
         it { should have_link('Sign out') }
         it { should have_title(user.name) }
         it { should have_selector('div.alert.alert-success', text: 'Welcome') }
-		
-	    describe "followed by signout" do
+
+        describe "followed by signout" do
           before { click_link "Sign out" }
           it { should have_link('Sign in') }
         end
@@ -192,8 +205,8 @@ describe "User pages" do
 
       it { should have_content('error') }
     end
-	
-	describe "with valid information" do
+
+    describe "with valid information" do
       let(:new_name)  { "New Name" }
       let(:new_email) { "new@example.com" }
       before do
@@ -211,20 +224,20 @@ describe "User pages" do
       specify { expect(user.reload.email).to eq new_email }
     end
 
-	describe "forbidden attributes" do
-	  let(:cheat_params) do
-	  { user: {admin: true, password: user.password,
-				   password_confirmation: user.password } }
-	  end
-	  before do
-	    sign_in user, no_capybara: true
-		patch user_path(user), cheat_params
-      end
-	  specify { expect(user.reload).not_to be_admin }
-    end	  
-  end
-  
-  describe "following/followers" do
+    describe "forbidden attributes" do
+     let(:cheat_params) do
+       { user: {admin: true, password: user.password,
+         password_confirmation: user.password } }
+       end
+       before do
+         sign_in user, no_capybara: true
+         patch user_path(user), cheat_params
+       end
+       specify { expect(user.reload).not_to be_admin }
+     end	  
+   end
+
+   describe "following/followers" do
     let(:user) { FactoryGirl.create(:user) }
     let(:other_user) { FactoryGirl.create(:user) }
     before { user.follow!(other_user) }
